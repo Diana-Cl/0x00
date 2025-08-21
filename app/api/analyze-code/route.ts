@@ -89,51 +89,49 @@ Code to analyze:
 ${content}
 \`\`\``
 
-    // Mock response for demonstration - replace with actual Gemini API call
-//    const mockResponse = {
-//      score: 75,
-//      language: language,
-//      suggestions: [
-//        {
-//          category: "Descriptive Names",
-//          description: "Variable 'x' should have a more descriptive name that explains its purpose",
-//          lineNumber: 5,
-//          codeSnippet: "let x = getData();",
-//          severity: "medium" as const,
-//        },
-//        {
-//          category: "Function Size",
-//          description:
-//            "This function is 150 lines long and handles multiple responsibilities. Consider breaking it into smaller, focused functions",
-//          lineNumber: 12,
-//          codeSnippet: "function processUserData() {\n  // ... 150 lines of code\n}",
-//          severity: "high" as const,
-//        },
-//        {
-//          category: "Magic Numbers",
-//          description: "The number 42 appears to be a magic number. Consider defining it as a named constant",
-//          lineNumber: 28,
-//          codeSnippet: "if (count > 42) {",
-//          severity: "low" as const,
-//        },
-//      ],
-//    }
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+    if (!GEMINI_API_KEY) {
+      return NextResponse.json({ error: "GEMINI_API_KEY is not set" }, { status: 500 })
+    }
 
-    // TODO: Replace with actual Gemini API call
-     const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent', {
-       method: 'POST',
-       headers: {
-         'Content-Type': 'application/json',
-         'Authorization': `Bearer ${process.env.GEMINI_API_KEY}`
-       },
-       body: JSON.stringify({
-         contents: [{
-           parts: [{ text: prompt }]
-         }]
-       })
-     })
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`
 
-    return NextResponse.json(mockResponse)
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [{ text: prompt }],
+          },
+        ],
+      }),
+    })
+
+    if (!response.ok) {
+      const errorBody = await response.text()
+      console.error("Gemini API error:", response.status, errorBody)
+      return NextResponse.json({ error: "Failed to analyze code from Gemini API", details: errorBody }, { status: response.status })
+    }
+
+    const data = await response.json()
+
+    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+      console.error("Unexpected Gemini API response structure:", data);
+      return NextResponse.json({ error: "Unexpected Gemini API response structure" }, { status: 500 });
+    }
+
+    const jsonResponseString = data.candidates[0].content.parts[0].text.replace(/```json\n?|```/g, "")
+
+    try {
+      const jsonResponse = JSON.parse(jsonResponseString)
+      return NextResponse.json(jsonResponse)
+    } catch (e) {
+      console.error("Failed to parse JSON from Gemini response:", e)
+      return NextResponse.json({ error: "Failed to parse JSON from Gemini response" }, { status: 500 })
+    }
   } catch (error) {
     console.error("Error analyzing code:", error)
     return NextResponse.json({ error: "Failed to analyze code" }, { status: 500 })
