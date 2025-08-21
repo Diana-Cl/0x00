@@ -90,48 +90,48 @@ ${content}
 \`\`\``
 
     // Mock response for demonstration - replace with actual Gemini API call
-    const mockResponse = {
-      score: 75,
-      language: language,
-      suggestions: [
-        {
-          category: "Descriptive Names",
-          description: "Variable 'x' should have a more descriptive name that explains its purpose",
-          lineNumber: 5,
-          codeSnippet: "let x = getData();",
-          severity: "medium" as const,
-        },
-        {
-          category: "Function Size",
-          description:
-            "This function is 150 lines long and handles multiple responsibilities. Consider breaking it into smaller, focused functions",
-          lineNumber: 12,
-          codeSnippet: "function processUserData() {\n  // ... 150 lines of code\n}",
-          severity: "high" as const,
-        },
-        {
-          category: "Magic Numbers",
-          description: "The number 42 appears to be a magic number. Consider defining it as a named constant",
-          lineNumber: 28,
-          codeSnippet: "if (count > 42) {",
-          severity: "low" as const,
-        },
-      ],
-    }
+//    const mockResponse = {
+//      score: 75,
+//      language: language,
+//      suggestions: [
+//        {
+//          category: "Descriptive Names",
+//          description: "Variable 'x' should have a more descriptive name that explains its purpose",
+//          lineNumber: 5,
+//          codeSnippet: "let x = getData();",
+//          severity: "medium" as const,
+//        },
+//        {
+//          category: "Function Size",
+//          description:
+//            "This function is 150 lines long and handles multiple responsibilities. Consider breaking it into smaller, focused functions",
+//          lineNumber: 12,
+//          codeSnippet: "function processUserData() {\n  // ... 150 lines of code\n}",
+//          severity: "high" as const,
+//        },
+//        {
+//          category: "Magic Numbers",
+//          description: "The number 42 appears to be a magic number. Consider defining it as a named constant",
+//          lineNumber: 28,
+//          codeSnippet: "if (count > 42) {",
+//          severity: "low" as const,
+//        },
+//      ],
+//    }
 
     // TODO: Replace with actual Gemini API call
-    // const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //     'Authorization': `Bearer ${process.env.GEMINI_API_KEY}`
-    //   },
-    //   body: JSON.stringify({
-    //     contents: [{
-    //       parts: [{ text: prompt }]
-    //     }]
-    //   })
-    // })
+     const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent', {
+       method: 'POST',
+       headers: {
+         'Content-Type': 'application/json',
+         'Authorization': `Bearer ${process.env.GEMINI_API_KEY}`
+       },
+       body: JSON.stringify({
+         contents: [{
+           parts: [{ text: prompt }]
+         }]
+       })
+     })
 
     return NextResponse.json(mockResponse)
   } catch (error) {
