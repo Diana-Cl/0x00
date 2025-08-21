@@ -94,7 +94,7 @@ ${content}
       return NextResponse.json({ error: "GEMINI_API_KEY is not set" }, { status: 500 })
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`
 
     const response = await fetch(url, {
       method: "POST",
