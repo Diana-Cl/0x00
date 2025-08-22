@@ -8,27 +8,48 @@ function detectLanguage(filename: string): string {
   const languageMap: Record<string, string> = {
     py: "Python",
     js: "JavaScript",
+    jsx: "React/JavaScript",
     ts: "TypeScript",
-    jsx: "React/JSX",
     tsx: "React/TypeScript",
     java: "Java",
+    c: "C",
     cpp: "C++",
     cc: "C++",
     cxx: "C++",
-    c: "C",
     cs: "C#",
-    php: "PHP",
     rb: "Ruby",
     go: "Go",
-    rs: "Rust",
+    php: "PHP",
     swift: "Swift",
     kt: "Kotlin",
-    scala: "Scala",
+    rs: "Rust",
     r: "R",
-    m: "Objective-C",
-    h: "C/C++ Header",
-    hpp: "C++ Header",
-  }
+    scala: "Scala",
+    sh: "Shell/Bash",
+    bash: "Bash",
+    ps1: "PowerShell",
+    lua: "Lua",
+    dart: "Dart",
+    elm: "Elm",
+    ex: "Elixir",
+    exs: "Elixir",
+    erl: "Erlang",
+    hrl: "Erlang",
+    fs: "F#",
+    fsx: "F#",
+    clj: "Clojure",
+    cljs: "ClojureScript",
+    hs: "Haskell",
+    jl: "Julia",
+    ml: "OCaml",
+    nim: "Nim",
+    pas: "Pascal",
+    pl: "Perl",
+    pm: "Perl",
+    v: "V",
+    vb: "Visual Basic",
+    zig: "Zig"
+  };
 
   return languageMap[extension || ""] || ""
 }
@@ -52,29 +73,36 @@ export async function POST(request: NextRequest) {
       : ""
 
     const prompt = `${languageContext}Please analyze the following code and provide:
-
-1. An overall score out of 100 based on code quality
-2. Specific suggestions for improvement
+1. An overall score out of 100
+2. A brief overall summary of the code quality.
+3. Specific, concise, and actionable suggestions for improvement.
 
 Evaluation criteria:
-1) Descriptive names - Use descriptive names for classes, functions, and variables
-2) Function size - Functions should be focused. Try and avoid functions that are 200+ lines long. But also avoid small functions <5 lines of code if the function is only called once (unless it is a public function that is part of a class)
-3) Make dependencies explicit - Avoid global state and hidden dependencies
-4) Error handling - Generally try to avoid blanket swallowing all errors with empty try/catch blocks
-5) Avoid too many levels of nesting of control structures/blocks. More than 2-3 levels is hard to follow
-6) Make side effects obvious
-7) Avoid magic numbers
+1) Descriptive names
+2) Function size
+3) Explicit dependencies
+4) Error handling
+5) Nesting levels
+6) Side effects clarity
+7) Magic numbers
 
 ${languageSpecificNote}
 
-For each suggestion, include:
-- Category (which criteria it relates to)
-- Description of the issue
-- Line number if applicable
-- Code snippet showing the problematic code
-- Severity (low, medium, high)
-
-Please respond in JSON format.
+Respond with ONLY a valid JSON object in this exact format:
+{
+  "score": number,
+  "summary": "brief overall assessment",
+  "improvements": [
+    {
+      "category": "category name",
+      "issue": "specific, concise issue description",
+      "suggestion": "concise, actionable recommendation on how to fix it",
+      "severity": "high|medium|low",
+      "lineNumber": number | null,
+      "codeSnippet": "the problematic code line/snippet" | null
+    }
+  ]
+}
 
 Code to analyze:
 \`\`\`
@@ -87,23 +115,24 @@ ${content}
       type: Type.OBJECT,
       properties: {
         score: { type: Type.NUMBER },
-        language: { type: Type.STRING },
-        suggestions: {
+        summary: { type: Type.STRING },
+        improvements: {
           type: Type.ARRAY,
           items: {
             type: Type.OBJECT,
             properties: {
               category: { type: Type.STRING },
-              description: { type: Type.STRING },
-              lineNumber: { type: Type.NUMBER },
-              codeSnippet: { type: Type.STRING },
+              issue: { type: Type.STRING },
+              suggestion: { type: Type.STRING },
               severity: { type: Type.STRING },
+              lineNumber: { type: Type.NUMBER, nullable: true },
+              codeSnippet: { type: Type.STRING, nullable: true },
             },
-            required: ["category", "description", "lineNumber", "codeSnippet", "severity"],
+            required: ["category", "issue", "suggestion", "severity"],
           },
         },
       },
-      required: ["score", "language", "suggestions"],
+      required: ["score", "summary", "improvements"],
     }
 
     const result = await ai.models.generateContent({

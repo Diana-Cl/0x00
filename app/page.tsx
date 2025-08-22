@@ -6,15 +6,16 @@ import { CodeAnalysis } from "@/components/code-analysis"
 import { Header } from "@/components/header"
 
 export interface AnalysisResult {
-  score: number
-  suggestions: Array<{
-    category: string
-    description: string
-    lineNumber?: number
-    codeSnippet?: string
-    severity: "low" | "medium" | "high"
-  }>
-  language: string
+  score: number;
+  summary: string;
+  improvements: Array<{
+    category: string;
+    issue: string;
+    suggestion: string;
+    severity: "high" | "medium" | "low";
+    lineNumber?: number;
+    codeSnippet?: string;
+  }>;
 }
 
 export default function Home() {
