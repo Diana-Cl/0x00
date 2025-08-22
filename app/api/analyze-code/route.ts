@@ -113,24 +113,27 @@ ${content}
         responseMimeType: "application/json",
         responseSchema: responseSchema,
       },
-    })
+    });
 
-    if (!result || !result.response) {
+    if (
+      !result ||
+      !result.candidates ||
+      !Array.isArray(result.candidates) ||
+      result.candidates.length === 0 ||
+      !result.candidates[0].content ||
+      !result.candidates[0].content.parts ||
+      !Array.isArray(result.candidates[0].content.parts) ||
+      result.candidates[0].content.parts.length === 0 ||
+      !result.candidates[0].content.parts[0].text
+    ) {
       console.error("Unexpected response structure from Gemini API:", JSON.stringify(result, null, 2));
       return NextResponse.json({ error: "Unexpected response structure from Gemini API" }, { status: 500 });
     }
 
-    const response = result.response;
-    const jsonText = response.text();
-
-    if (!jsonText) {
-        console.error("Empty text response from Gemini API:", JSON.stringify(response, null, 2));
-        return NextResponse.json({ error: "Empty text response from Gemini API" }, { status: 500 });
-    }
-
+    const jsonText = result.candidates[0].content.parts[0].text;
     const jsonResponse = JSON.parse(jsonText);
 
-    return NextResponse.json(jsonResponse)
+    return NextResponse.json(jsonResponse);
   } catch (error) {
     console.error("Error analyzing code:", error)
     if (error instanceof ApiError) {
