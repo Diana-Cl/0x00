@@ -115,8 +115,20 @@ ${content}
       },
     })
 
+    if (!result || !result.response) {
+      console.error("Unexpected response structure from Gemini API:", JSON.stringify(result, null, 2));
+      return NextResponse.json({ error: "Unexpected response structure from Gemini API" }, { status: 500 });
+    }
+
     const response = result.response;
-    const jsonResponse = JSON.parse(response.text());
+    const jsonText = response.text();
+
+    if (!jsonText) {
+        console.error("Empty text response from Gemini API:", JSON.stringify(response, null, 2));
+        return NextResponse.json({ error: "Empty text response from Gemini API" }, { status: 500 });
+    }
+
+    const jsonResponse = JSON.parse(jsonText);
 
     return NextResponse.json(jsonResponse)
   } catch (error) {
