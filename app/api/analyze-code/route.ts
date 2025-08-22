@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { GoogleGenAI, Type, ApiError } from "@google/genai"
 
 // Language detection based on file extension
 function detectLanguage(filename: string): string {
@@ -40,6 +41,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing filename or content" }, { status: 400 })
     }
 
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json({ error: "GEMINI_API_KEY is not set" }, { status: 500 })
+    }
+
     const language = detectLanguage(filename)
     const languageContext = language ? `You are a ${language} code review expert. ` : ""
     const languageSpecificNote = language
@@ -69,71 +74,56 @@ For each suggestion, include:
 - Code snippet showing the problematic code
 - Severity (low, medium, high)
 
-Please respond in JSON format:
-{
-  "score": number,
-  "language": "${language}",
-  "suggestions": [
-    {
-      "category": "string",
-      "description": "string",
-      "lineNumber": number,
-      "codeSnippet": "string",
-      "severity": "low|medium|high"
-    }
-  ]
-}
+Please respond in JSON format.
 
 Code to analyze:
 \`\`\`
 ${content}
 \`\`\``
 
-    const GEMINI_API_KEY = process.env.GEMINI_API_KEY
-    if (!GEMINI_API_KEY) {
-      return NextResponse.json({ error: "GEMINI_API_KEY is not set" }, { status: 500 })
+    const ai = new GoogleGenAI({})
+
+    const responseSchema = {
+      type: Type.OBJECT,
+      properties: {
+        score: { type: Type.NUMBER },
+        language: { type: Type.STRING },
+        suggestions: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              category: { type: Type.STRING },
+              description: { type: Type.STRING },
+              lineNumber: { type: Type.NUMBER },
+              codeSnippet: { type: Type.STRING },
+              severity: { type: Type.STRING },
+            },
+            required: ["category", "description", "lineNumber", "codeSnippet", "severity"],
+          },
+        },
+      },
+      required: ["score", "language", "suggestions"],
     }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const result = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: responseSchema,
       },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [{ text: prompt }],
-          },
-        ],
-      }),
     })
 
-    if (!response.ok) {
-      const errorBody = await response.text()
-      console.error("Gemini API error:", response.status, errorBody)
-      return NextResponse.json({ error: "Failed to analyze code from Gemini API", details: errorBody }, { status: response.status })
-    }
+    const response = result.response;
+    const jsonResponse = JSON.parse(response.text());
 
-    const data = await response.json()
-
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
-      console.error("Unexpected Gemini API response structure:", data);
-      return NextResponse.json({ error: "Unexpected Gemini API response structure" }, { status: 500 });
-    }
-
-    const jsonResponseString = data.candidates[0].content.parts[0].text.replace(/```json\n?|```/g, "")
-
-    try {
-      const jsonResponse = JSON.parse(jsonResponseString)
-      return NextResponse.json(jsonResponse)
-    } catch (e) {
-      console.error("Failed to parse JSON from Gemini response:", e)
-      return NextResponse.json({ error: "Failed to parse JSON from Gemini response" }, { status: 500 })
-    }
+    return NextResponse.json(jsonResponse)
   } catch (error) {
     console.error("Error analyzing code:", error)
+    if (error instanceof ApiError) {
+      return NextResponse.json({ error: "Failed to analyze code from Gemini API", details: error.message }, { status: 500 })
+    }
     return NextResponse.json({ error: "Failed to analyze code" }, { status: 500 })
   }
 }
