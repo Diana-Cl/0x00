@@ -66,7 +66,7 @@ export function CodeAnalysis({ result, isLoading }: CodeAnalysisProps) {
                     <span dir="rtl" className="font-semibold text-card-foreground">{item.category}</span>
                     <Badge variant="secondary" className="capitalize">{item.severity}</Badge>
                   </div>
-                  <p dir="rtl" className="text-sm text-muted-foreground mb-3">{item.issue}</p>
+                  <p dir="rtl" className="text-sm text-muted-foreground mb-3 break-words">{item.issue}</p>
 
                   {item.codeSnippet && (
                     <div className="mb-3">
@@ -77,7 +77,7 @@ export function CodeAnalysis({ result, isLoading }: CodeAnalysisProps) {
                     </div>
                   )}
 
-                  <p dir="rtl" className="text-sm" style={{ color: 'var(--success)' }}>
+                  <p dir="rtl" className="text-sm break-words" style={{ color: 'var(--success)' }}>
                     <span className="font-semibold" style={{ color: 'var(--success)' }}>Suggestion:</span> {item.suggestion}
                   </p>
                 </div>
