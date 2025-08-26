@@ -17,7 +17,7 @@ export function CodeAnalysis({ result, isLoading }: CodeAnalysisProps) {
         <div className="bg-card rounded-lg p-8 border border-border text-center shadow-2xl">
           <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto mb-4" />
           <h3 className="text-lg font-medium mb-2 text-card-foreground">Analyzing Your Code</h3>
-          <p className="text-sm text-muted-foreground">This may take a moment...</p>
+          <p className="text-sm text-muted-foreground">Hold your horses ...</p>
         </div>
       </div>
     )
@@ -26,19 +26,19 @@ export function CodeAnalysis({ result, isLoading }: CodeAnalysisProps) {
   if (!result) return null
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return "text-green-400"
-    if (score >= 60) return "text-yellow-400"
-    return "text-red-400"
+    if (score >= 80) return "var(--success)"
+    if (score >= 60) return "var(--warning)"
+    return "var(--danger)"
   }
 
   const getSeverityIcon = (severity: "high" | "medium" | "low") => {
     switch (severity) {
       case "high":
-        return <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+        return <AlertCircle className="w-5 h-5 flex-shrink-0" style={{ color: "var(--danger)" }} />
       case "medium":
-        return <Info className="w-5 h-5 text-yellow-400 flex-shrink-0" />
+        return <Info className="w-5 h-5 flex-shrink-0" style={{ color: "var(--warning)" }} />
       case "low":
-        return <CheckCircle className="w-5 h-5 text-blue-400 flex-shrink-0" />
+        return <CheckCircle className="w-5 h-5 flex-shrink-0" style={{ color: "var(--primary)" }} />
       default:
         return null
     }
@@ -48,10 +48,10 @@ export function CodeAnalysis({ result, isLoading }: CodeAnalysisProps) {
     <div className="space-y-8">
       <Card className="p-6 text-center shadow-lg">
         <h2 className="text-2xl font-bold mb-2 text-card-foreground">Overall Score</h2>
-        <div className={`text-6xl font-bold ${getScoreColor(result.score)}`}>
+        <div className="text-6xl font-bold" style={{ color: getScoreColor(result.score) }}>
           {result.score}/100
         </div>
-        <p className="text-muted-foreground mt-3 max-w-2xl mx-auto">{result.summary}</p>
+        <p dir="rtl" className="text-muted-foreground mt-3 max-w-2xl mx-auto">{result.summary}</p>
       </Card>
 
       <Card className="p-6 shadow-lg">
@@ -63,10 +63,10 @@ export function CodeAnalysis({ result, isLoading }: CodeAnalysisProps) {
                 {getSeverityIcon(item.severity)}
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="font-semibold text-card-foreground">{item.category}</span>
+                    <span dir="rtl" className="font-semibold text-card-foreground">{item.category}</span>
                     <Badge variant="secondary" className="capitalize">{item.severity}</Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-3">{item.issue}</p>
+                  <p dir="rtl" className="text-sm text-muted-foreground mb-3">{item.issue}</p>
 
                   {item.codeSnippet && (
                     <div className="mb-3">
@@ -77,8 +77,8 @@ export function CodeAnalysis({ result, isLoading }: CodeAnalysisProps) {
                     </div>
                   )}
 
-                  <p className="text-sm text-green-400/90">
-                    <span className="font-semibold text-green-400">Suggestion:</span> {item.suggestion}
+                  <p dir="rtl" className="text-sm" style={{ color: 'var(--success)' }}>
+                    <span className="font-semibold" style={{ color: 'var(--success)' }}>Suggestion:</span> {item.suggestion}
                   </p>
                 </div>
               </div>
