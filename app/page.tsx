@@ -18,13 +18,17 @@ export interface AnalysisResult {
   }>;
 }
 
+import { AlertTriangle } from "lucide-react"
+
 export default function Home() {
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [analysisError, setAnalysisError] = useState<string | null>(null)
 
   const handleFileAnalysis = async (file: File, content: string) => {
     setIsAnalyzing(true)
     setAnalysisResult(null)
+    setAnalysisError(null)
 
     try {
       const response = await fetch("/api/analyze-code", {
@@ -39,14 +43,15 @@ export default function Home() {
       })
 
       if (!response.ok) {
-        throw new Error("Failed to analyze code")
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || "Failed to analyze code")
       }
 
       const result = await response.json()
       setAnalysisResult(result)
     } catch (error) {
       console.error("Error analyzing code:", error)
-      // Handle error state here
+      setAnalysisError(error instanceof Error ? error.message : "An unknown error occurred.")
     } finally {
       setIsAnalyzing(false)
     }
@@ -67,7 +72,19 @@ export default function Home() {
 
           <FileUpload onFileAnalysis={handleFileAnalysis} isAnalyzing={isAnalyzing} />
 
-          {(analysisResult || isAnalyzing) && <CodeAnalysis result={analysisResult} isLoading={isAnalyzing} />}
+          {analysisError && (
+            <div className="bg-destructive/10 border border-destructive/20 text-destructive rounded-lg p-4 flex items-center gap-4">
+              <AlertTriangle className="w-6 h-6" />
+              <div>
+                <h4 className="font-bold">Analysis Error</h4>
+                <p className="text-sm">{analysisError}</p>
+              </div>
+            </div>
+          )}
+
+          {(analysisResult || isAnalyzing) && !analysisError && (
+            <CodeAnalysis result={analysisResult} isLoading={isAnalyzing} />
+          )}
         </div>
       </main>
     </div>
