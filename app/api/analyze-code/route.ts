@@ -2,8 +2,8 @@ import { type NextRequest, NextResponse } from "next/server"
 import { GoogleGenAI, Type, ApiError } from "@google/genai"
 
 // Constants for maintainability
-const MAX_CONTENT_LENGTH = 100000
-const DEFAULT_TIMEOUT = 30000
+const MAX_CONTENT_LENGTH = 300000
+const DEFAULT_TIMEOUT = 50000
 const SUPPORTED_LANGUAGES = {
   py: "Python",
   js: "JavaScript", 
@@ -61,15 +61,15 @@ function detectLanguage(filename: string): string {
 // Validation functions
 function validateRequest(data: any): { isValid: boolean; error?: string } {
   if (!data.content || typeof data.content !== 'string') {
-    return { isValid: false, error: "محتوای کد الزامی است" }
+    return { isValid: false, error: "محتوای کد الزامیه" }
   }
   
   if (!data.filename || typeof data.filename !== 'string') {
-    return { isValid: false, error: "نام فایل الزامی است" }
+    return { isValid: false, error: "نام فایل الزامیه" }
   }
   
   if (data.content.length > MAX_CONTENT_LENGTH) {
-    return { isValid: false, error: `حجم کد نمی‌تواند بیش از ${MAX_CONTENT_LENGTH} کاراکتر باشد` }
+    return { isValid: false, error: `حجم کد نمیتونه بیش‌تر از ${MAX_CONTENT_LENGTH} کاراکتر باشه.` }
   }
   
   return { isValid: true }
@@ -117,7 +117,7 @@ function generatePrompt(filename: string, content: string, options?: {
 
   const allCriteria = [...baseCriteria, ...additionalCriteria].join('\n')
 
-  return `${languageContext}لطفاً کد زیر را تحلیل کرده و خروجی را به زبان فارسی ارائه دهید.
+  return `${languageContext}لطفاً کد زیر رو تحلیل کرده و نتیجه رو به زبان فارسی ارائه بده، میتونی بجز مواردی که ذکر شده بررسی‌های دلخواه دیگه‌ای هم روی کد انجام داده و ارائه بدی (با خلاقیت خودت).
 
 ارائه دهید:
 1. امتیاز کلی از 100
