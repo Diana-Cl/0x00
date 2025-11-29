@@ -2,8 +2,8 @@ import { type NextRequest, NextResponse } from "next/server"
 import { GoogleGenAI, Type, ApiError } from "@google/genai"
 
 // Constants for maintainability
-const MAX_CONTENT_LENGTH = 300000
-const DEFAULT_TIMEOUT = 50000
+const MAX_CONTENT_LENGTH = 80000
+const DEFAULT_TIMEOUT = 25000
 const SUPPORTED_LANGUAGES = {
   py: "Python",
   js: "JavaScript", 
